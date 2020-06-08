@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+
+set ipaddres [lindex $argv 0]
+set username [lindex $argv 1]
+set password [lindex $argv 2]
+set fname [lindex $argv 3]
+set dirname [lindex $argv 4]
+
+#set outfile [open "$ipaddres\_$fname.txt" w]
+log_user 1
+exp_internal 0 
+match_max 500000
+set timeout 20 
+
+set prompt "(>) $"
+
+log_user 1                   ;# turn off the usual output
+
+spawn ssh -o "StrictHostKeyChecking no" "$username@$ipaddres" 
+
+expect -re "assword:"
+send "$password\r"
+expect -re $prompt
+#set hostname [exec "show version | match Hostname | trim 10"]
+
+send "show version | match Hostname | trim 10\r"
+expect -re $prompt
+
+#set hostname [ $expect_out(buffer) ] 
+
+log_file $dirname/$ipaddres$fname.txt
+
+
+set handle [ open commands.txt r ]
+while { ! [eof $handle] } {
+        gets $handle buf
+        #puts $buf
+        #expect "\\~\\#"
+        #puts $buf
+        #expect -re $prompt
+        #expect -re $prompt
+	send "$buf | no-more\r"
+	expect -re $prompt
+        #puts $outfile $expect_out(buffer)
+}
+
+#send "show interfaces terse | no-more\r"
+send "quit\r"
+log_file
+expect eof
+#close $outfile
+log_user 1
+exit
+#puts $outfile $expect_out(buffer)     ;# print the results of the command
